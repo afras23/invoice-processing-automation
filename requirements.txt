@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+python-multipart
+pdfplumber
+pillow
+anthropic
+pydantic
+python-dotenv
+gspread
+oauth2client
+requests
