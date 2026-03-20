@@ -1,8 +1,12 @@
 """
 Invoice extraction service.
 
-Handles PDF text extraction and AI-powered structured data extraction.
+Two entry points:
+  extract_invoice_fields(raw_text) → ExtractedInvoice   [pipeline path]
+  extract_text_from_pdf(path)      → str                [legacy / ingestion helper]
 """
+
+from __future__ import annotations
 
 import json
 import logging
@@ -13,21 +17,17 @@ import pdfplumber
 
 from app.config import settings
 from app.core.exceptions import ExtractionError, PDFParseError
+from app.models.invoice import ExtractedInvoice
 
 logger = logging.getLogger(__name__)
 
 _PROMPTS_DIR = Path(__file__).parent.parent.parent / "prompts"
+_REQUIRED_FIELDS = {"vendor", "invoice_id", "date", "amount"}
 
 
 def extract_text_from_pdf(path: str) -> str:
     """
-    Extract raw text from a PDF file.
-
-    Args:
-        path: Filesystem path to the PDF.
-
-    Returns:
-        Concatenated text from all pages.
+    Extract raw text from a PDF file path.
 
     Raises:
         PDFParseError: If the file cannot be opened or parsed.
@@ -40,36 +40,39 @@ def extract_text_from_pdf(path: str) -> str:
         raise PDFParseError(f"Failed to parse PDF at {path}") from e
 
 
-def extract_invoice_data(pdf_path: str) -> dict:
+def extract_invoice_fields(
+    raw_text: str,
+    *,
+    client: anthropic.Anthropic | None = None,
+) -> ExtractedInvoice:
     """
-    Extract structured invoice data from a PDF using the Claude API.
+    Extract the four core invoice fields from raw text using the Claude API.
+
+    Returns an ExtractedInvoice where missing fields are None — the caller
+    (validation + confidence stages) is responsible for handling gaps.
 
     Args:
-        pdf_path: Filesystem path to the PDF invoice.
-
-    Returns:
-        Dictionary matching the Invoice schema.
+        raw_text: Plain text of the invoice document.
+        client: Optional pre-built Anthropic client (injected in tests).
 
     Raises:
-        PDFParseError: If the PDF cannot be read.
-        ExtractionError: If the AI response cannot be parsed.
+        ExtractionError: If the API call fails or returns unparseable output.
     """
-    raw_text = extract_text_from_pdf(pdf_path)
-
     prompt_path = _PROMPTS_DIR / "invoice_extraction.txt"
     try:
         system_prompt = prompt_path.read_text()
     except FileNotFoundError as e:
         raise ExtractionError(f"Prompt file not found: {prompt_path}") from e
 
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    if client is None:
+        client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
 
     logger.info("Sending invoice to AI for extraction", extra={"model": settings.ai_model})
 
     try:
         message = client.messages.create(
             model=settings.ai_model,
-            max_tokens=1024,
+            max_tokens=512,
             system=system_prompt,
             messages=[{"role": "user", "content": f"INVOICE TEXT:\n{raw_text}"}],
         )
@@ -92,7 +95,9 @@ def extract_invoice_data(pdf_path: str) -> dict:
         extra={
             "input_tokens": message.usage.input_tokens,
             "output_tokens": message.usage.output_tokens,
+            "fields_present": [f for f in _REQUIRED_FIELDS if data.get(f) is not None],
         },
     )
 
-    return data
+    # Build the model; unknown keys are silently dropped via model_validate
+    return ExtractedInvoice.model_validate(data)
