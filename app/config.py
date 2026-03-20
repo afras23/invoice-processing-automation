@@ -4,6 +4,8 @@ Application configuration.
 All settings are loaded from environment variables, validated at startup.
 """
 
+from typing import Optional
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -13,7 +15,7 @@ class Settings(BaseSettings):
     ai_model: str = Field(default="claude-3-5-sonnet-20241022")
     anthropic_api_key: str
 
-    slack_webhook_url: str | None = Field(default=None)
+    slack_webhook_url: Optional[str] = Field(default=None)
     service_account_file: str = Field(default="service_account.json")
     sheets_document_name: str = Field(default="Invoices")
 
