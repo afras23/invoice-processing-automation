@@ -1,0 +1,5 @@
+# Migrations
+
+Alembic migrations live here. Run `make migrate` to apply them.
+
+Initialise with: alembic init migrations

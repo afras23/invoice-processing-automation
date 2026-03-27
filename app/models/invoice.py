@@ -8,17 +8,17 @@ Google Sheets integration which expects the richer schema.
 
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
-
 # ── Rich invoice model (used by Sheets/Slack integrations) ──────────────────
+
 
 class LineItem(BaseModel):
     description: str = Field(..., description="Description of the line item")
-    quantity: Optional[float] = Field(default=None, description="Units purchased")
-    unit_price: Optional[float] = Field(default=None, description="Price per unit")
+    quantity: float | None = Field(default=None, description="Units purchased")
+    unit_price: float | None = Field(default=None, description="Price per unit")
     total: float = Field(..., description="Line item total")
 
 
@@ -28,20 +28,21 @@ class Invoice(BaseModel):
     invoice_date: str = Field(..., description="Invoice date as a string")
     currency: str = Field(..., description="Currency code, e.g. GBP, USD")
     total_amount: float = Field(..., gt=0, description="Invoice total amount")
-    po_number: Optional[str] = Field(default=None, description="Purchase order number")
+    po_number: str | None = Field(default=None, description="Purchase order number")
     line_items: list[LineItem] = Field(default_factory=list)
 
 
 # ── Pipeline types ────────────────────────────────────────────────────────────
 
+
 class ExtractedInvoice(BaseModel):
     """Raw output from the AI extraction step. All fields are optional
     because the AI may fail to identify any given field."""
 
-    vendor: Optional[str] = None
-    invoice_id: Optional[str] = None
-    date: Optional[str] = None
-    amount: Optional[float] = None
+    vendor: str | None = None
+    invoice_id: str | None = None
+    date: str | None = None
+    amount: float | None = None
 
 
 class ValidationResult(BaseModel):
@@ -56,7 +57,9 @@ class ConfidenceResult(BaseModel):
 
     score: float = Field(ge=0.0, le=1.0, description="Overall confidence (0–1)")
     completeness: float = Field(ge=0.0, le=1.0, description="Fraction of required fields present")
-    validation_score: float = Field(ge=0.0, le=1.0, description="1.0 if validation passed, else 0.0")
+    validation_score: float = Field(
+        ge=0.0, le=1.0, description="1.0 if validation passed, else 0.0"
+    )
 
 
 class PipelineResult(BaseModel):
@@ -64,16 +67,17 @@ class PipelineResult(BaseModel):
 
     status: Literal["processed", "duplicate", "failed"]
     content_hash: str
-    extracted: Optional[ExtractedInvoice] = None
-    validation: Optional[ValidationResult] = None
-    confidence: Optional[ConfidenceResult] = None
-    csv_row: Optional[list[str]] = Field(
+    extracted: ExtractedInvoice | None = None
+    validation: ValidationResult | None = None
+    confidence: ConfidenceResult | None = None
+    csv_row: list[str] | None = Field(
         default=None,
         description="CSV-ready row: [vendor, invoice_id, date, amount, confidence, validation_passed]",
     )
 
 
 # ── Legacy response model used by the HTTP route ─────────────────────────────
+
 
 class ProcessingResult(BaseModel):
     status: str
