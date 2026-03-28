@@ -1,0 +1,29 @@
+Beta Software Ltd
+10 Tech Street, London, EC1A 1BB
+Company No: 12345678 | VAT No: GB123456789
+accounts@betasoftware.co.uk
+
+INVOICE
+
+Bill To:
+Northern Retail Group
+20 Commerce Road, Manchester, M1 1AA
+
+Invoice No:   INV-2026-042
+Date:         05/03/2026
+Payment Due:  04/04/2026
+Currency:     GBP
+
+Item                        Amount
+Annual Software Licence     £1,200.00
+Premium Support Package       £800.00
+Onboarding & Training         £400.00
+
+Subtotal:   £2,400.00
+VAT (0%):       £0.00
+Total:      £2,400.00
+
+Payment by BACS:
+Sort Code: 20-00-00
+Account: 12345678
+Reference: INV-2026-042
