@@ -82,3 +82,7 @@ class MetricsResponse(BaseModel):
     app_env: str
     integrations: dict[str, str]
     ai_costs: dict[str, Any]
+    pipeline: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Pipeline counters: invoices_processed_today, avg_extraction_accuracy, etc.",
+    )

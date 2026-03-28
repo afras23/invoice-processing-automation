@@ -81,6 +81,26 @@ class Settings(BaseSettings):
         description="Async SQLAlchemy database URL (e.g. postgresql+asyncpg://...)",
     )
 
+    # ── Review queue ──────────────────────────────────────────────────────────
+    confidence_review_threshold: float = Field(
+        default=0.7,
+        description="Pipeline confidence scores below this value are queued for human review",
+    )
+
+    # ── Airtable (optional) ───────────────────────────────────────────────────
+    airtable_api_key: str | None = Field(
+        default=None,
+        description="Airtable personal access token; omit to disable Airtable export",
+    )
+    airtable_base_id: str | None = Field(
+        default=None,
+        description="Airtable base ID (e.g. appXXXXXXXXXXXXXX)",
+    )
+    airtable_table_name: str = Field(
+        default="Invoices",
+        description="Airtable table to store extracted invoice records",
+    )
+
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, extra="ignore")
 
 

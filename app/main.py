@@ -10,8 +10,10 @@ from fastapi import FastAPI
 
 from app.api.middleware.error_handler import ErrorHandlerMiddleware
 from app.api.middleware.logging import RequestLoggingMiddleware
+from app.api.routes.batch import router as batch_router
 from app.api.routes.health import router as health_router
 from app.api.routes.invoices import router as invoices_router
+from app.api.routes.review import router as review_router
 from app.core.logging_config import configure_logging
 
 configure_logging()
@@ -30,3 +32,5 @@ app.add_middleware(RequestLoggingMiddleware)
 
 app.include_router(health_router, prefix="/api/v1")
 app.include_router(invoices_router, prefix="/api/v1/invoices")
+app.include_router(batch_router, prefix="/api/v1/batch")
+app.include_router(review_router, prefix="/api/v1/review")
