@@ -191,7 +191,7 @@ class BatchService:
         except Exception as exc:
             logger.warning(
                 "Batch document failed",
-                extra={"filename": filename, "error": str(exc)},
+                extra={"source_file": filename, "error": str(exc)},
             )
             return BatchDocumentResult(
                 filename=filename,
