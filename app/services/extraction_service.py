@@ -24,7 +24,7 @@ from app.models.invoice import (
 from app.services.ai.client import AICallResult, AnthropicClient
 from app.services.ai.prompts import DEFAULT_VERSION, get_prompt
 from app.services.confidence_service import score_confidence
-from app.services.deduplication import DeduplicationStore, compute_hash
+from app.services.deduplication import DeduplicationStore
 from app.services.parsing.pdf_parser import parse_document
 from app.services.validation_service import validate_extracted
 
@@ -58,7 +58,7 @@ async def process_invoice(
     """
     # ── 1. Parse ───────────────────────────────────────────────────────────
     try:
-        raw_text = parse_document(content, filename)
+        parsed_doc = parse_document(content, filename)
     except PDFParseError as exc:
         logger.error(
             "Document parsing failed",
@@ -66,16 +66,14 @@ async def process_invoice(
         )
         return PipelineResult(status="failed", content_hash="", extracted=None)
 
-    content_hash = compute_hash(raw_text)
-
     # ── 2. Deduplicate ────────────────────────────────────────────────────
-    if dedup_store.check_and_add(content_hash):
-        return PipelineResult(status="duplicate", content_hash=content_hash)
+    if dedup_store.check_and_add(parsed_doc.content_hash):
+        return PipelineResult(status="duplicate", content_hash=parsed_doc.content_hash)
 
     # ── 3. Extract ────────────────────────────────────────────────────────
     try:
         extracted_invoice = await extract_invoice_fields(
-            raw_text,
+            parsed_doc.text,
             ai_client=ai_client,
             prompt_version=prompt_version,
         )
@@ -84,7 +82,7 @@ async def process_invoice(
             "AI extraction failed",
             extra={"source_file": filename, "error": str(exc)},
         )
-        return PipelineResult(status="failed", content_hash=content_hash)
+        return PipelineResult(status="failed", content_hash=parsed_doc.content_hash)
 
     # ── 4. Validate ───────────────────────────────────────────────────────
     validation_result = validate_extracted(extracted_invoice)
@@ -98,15 +96,16 @@ async def process_invoice(
             "source_file": filename,
             "confidence": confidence_result.score,
             "validation_passed": validation_result.passed,
-            "hash": content_hash[:16],
+            "hash": parsed_doc.content_hash[:16],
             "prompt_version": prompt_version,
+            "needs_ocr": parsed_doc.needs_ocr,
         },
     )
 
     # ── 6. Build result ───────────────────────────────────────────────────
     return PipelineResult(
         status="processed",
-        content_hash=content_hash,
+        content_hash=parsed_doc.content_hash,
         extracted=extracted_invoice,
         validation=validation_result,
         confidence=confidence_result,
@@ -121,7 +120,7 @@ async def extract_invoice_fields(
     prompt_version: str = DEFAULT_VERSION,
 ) -> ExtractedInvoice:
     """
-    Extract the core invoice fields from raw text using the AI client.
+    Extract core invoice fields from raw text using the AI client.
 
     Args:
         raw_text: Plain text of the invoice document.
@@ -174,12 +173,14 @@ def _build_csv_row(
     confidence: ConfidenceResult,
     validation: ValidationResult,
 ) -> list[str]:
-    """Build a 6-column CSV row from pipeline stage outputs."""
+    """Build a 7-column CSV row from pipeline stage outputs."""
+    total = extracted.total or extracted.amount
     return [
         extracted.vendor or "",
         extracted.invoice_id or "",
         extracted.date or "",
-        str(extracted.amount) if extracted.amount is not None else "",
+        str(total) if total is not None else "",
+        extracted.currency or "",
         str(confidence.score),
         "YES" if validation.passed else "NO",
     ]

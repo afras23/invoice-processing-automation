@@ -53,10 +53,10 @@ async def test_valid_invoice_has_confidence_score_of_1(dedup_store, good_ai_clie
     assert result.confidence.score == 1.0
 
 
-async def test_csv_row_has_six_columns(dedup_store, good_ai_client):
+async def test_csv_row_has_seven_columns(dedup_store, good_ai_client):
     result = await process_invoice("some text", dedup_store=dedup_store, ai_client=good_ai_client)
     assert result.csv_row is not None
-    assert len(result.csv_row) == 6
+    assert len(result.csv_row) == 7
 
 
 # ── deduplication ─────────────────────────────────────────────────────────────

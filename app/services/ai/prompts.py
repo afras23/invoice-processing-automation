@@ -51,7 +51,11 @@ Schema:
   "vendor":     string | null,
   "invoice_id": string | null,
   "date":       string | null,
+  "due_date":   string | null,
   "amount":     number | null,
+  "subtotal":   number | null,
+  "tax":        number | null,
+  "total":      number | null,
   "currency":   string | null,
   "line_items": [
     {
@@ -73,7 +77,11 @@ Field rules:
 - vendor:     The supplier or company issuing the invoice.
 - invoice_id: The invoice number or reference (e.g. "INV-2026-0042").
 - date:       The invoice date in ISO 8601 format (YYYY-MM-DD). Convert if needed.
+- due_date:   The payment due date in ISO 8601 format (YYYY-MM-DD). Use null if absent.
 - amount:     The total amount due as a plain number, no currency symbol.
+- subtotal:   Pre-tax subtotal as a plain number, no currency symbol. Use null if absent.
+- tax:        Tax amount as a plain number, no currency symbol. Use null if absent.
+- total:      Grand total (subtotal + tax) as a plain number. Use null if not explicit.
 - currency:   ISO 4217 currency code (e.g. "USD", "GBP"). Use null if not present.
 - line_items: Individual line items if present; empty array if not listed.
 - confidence: Per-field certainty score from 0.0 (guessed) to 1.0 (explicit in text).
