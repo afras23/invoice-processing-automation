@@ -1,4 +1,4 @@
-.PHONY: dev test lint format typecheck migrate docker clean evaluate
+.PHONY: dev test lint format typecheck migrate docker clean evaluate evaluate-v2 evaluate-dry-run
 
 dev:
 	uvicorn app.main:app --reload --port 8000
@@ -28,4 +28,10 @@ clean:
 	rm -rf .mypy_cache .pytest_cache htmlcov .coverage
 
 evaluate:
-	python eval/evaluate.py
+	python scripts/evaluate.py --prompt-version v1
+
+evaluate-v2:
+	python scripts/evaluate.py --prompt-version v2
+
+evaluate-dry-run:
+	ANTHROPIC_API_KEY=$${ANTHROPIC_API_KEY:-test-key} python scripts/evaluate.py --dry-run
