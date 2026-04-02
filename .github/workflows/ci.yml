@@ -38,6 +38,12 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
+      - name: Run migrations
+        env:
+          APP_ENV: test
+          DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test_invoices
+        run: alembic upgrade head
+
       - name: Lint
         run: ruff check app/ tests/
 
