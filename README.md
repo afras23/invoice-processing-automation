@@ -103,7 +103,11 @@ graph TD
 
 ## Evaluation Results
 
-The evaluation pipeline (`make evaluate`) runs 35 labelled test cases across 6 categories against the live Claude API. Results below are from the dry-run baseline; run `make evaluate` with a real API key to populate accuracy metrics.
+The evaluation pipeline (`make evaluate`) runs 35 labelled test cases across 6 categories against the live Claude API.
+
+> **Important:** The JSON block below is a **dry-run placeholder** generated **without an API key**.  
+> These `0.0` metrics **do not represent real model performance**.  
+> Run `make evaluate` with a valid `ANTHROPIC_API_KEY` to produce actual evaluation results.
 
 ```json
 {
@@ -128,8 +132,8 @@ The evaluation pipeline (`make evaluate`) runs 35 labelled test cases across 6 c
 }
 ```
 
-> Results are `0.0` because this was generated with `--dry-run` (no API key).
-> Run `make evaluate` with `ANTHROPIC_API_KEY` set to get real accuracy figures.
+> Results are `0.0` because this output was generated with `--dry-run` (no API key).  
+> Set `ANTHROPIC_API_KEY` and run `make evaluate` to obtain real accuracy figures.
 
 ### Test Set Breakdown
 
@@ -274,7 +278,7 @@ make evaluate-dry-run # run eval without API key
 |---|---|---|
 | In-memory dedup vs. DB | In-memory | Zero latency; DB models exist for scale-out when needed |
 | AI vs. regex extraction | Claude AI | Invoices vary too much for reliable regex |
-| Sync pipeline vs. queue | Synchronous | Simplest demoable path; queue is an upgrade, not a requirement |
+| Sync pipeline vs. queue | Synchronous | Optimised for low latency and operational simplicity; queueing is an upgrade path, not a requirement |
 | Per-document error isolation | Always on | One corrupt file must never block 99 good ones in a batch |
 | Confidence threshold | 0.7 (configurable) | Tuned to balance automation rate vs. review load |
 | Two prompt versions | v1 (core) + v2 (rich) | v1 for cost/speed; v2 for line items — choose per deployment |
@@ -313,7 +317,7 @@ Full documentation in [.env.example](.env.example). Key variables:
 │       ├── ai/           # Client wrapper + versioned prompts
 │       └── parsing/      # PDF, CSV, image, text parsers
 ├── tests/
-│   ├── fixtures/sample_inputs/  # Demo invoices (PDF + text)
+│   ├── fixtures/sample_inputs/  # Sample invoices for automated tests
 │   ├── integration/             # Pipeline + HTTP endpoint tests
 │   └── unit/                    # Service unit tests (312 total)
 ├── eval/
@@ -329,5 +333,3 @@ Full documentation in [.env.example](.env.example). Key variables:
 ```
 
 ---
-
-*Built as a portfolio demonstration of production AI engineering: cost-controlled LLM calls, structured output validation, human-in-the-loop workflows, and multi-format document processing.*
