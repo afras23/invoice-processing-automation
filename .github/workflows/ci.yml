@@ -12,6 +12,8 @@ jobs:
 
     env:
       PYTHONPATH: ${{ github.workspace }}
+      APP_ENV: test
+      DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test_invoices
 
     services:
       postgres:
@@ -42,9 +44,6 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Run migrations
-        env:
-          APP_ENV: test
-          DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test_invoices
         run: alembic upgrade head
 
       - name: Lint
@@ -58,7 +57,5 @@ jobs:
 
       - name: Test
         env:
-          APP_ENV: test
           ANTHROPIC_API_KEY: test-key
-          DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test_invoices
         run: pytest tests/ -v --tb=short --cov=app --cov-report=term-missing
