@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-04-02T20:28:32.420989+00:00",
+  "model": "claude-3-5-sonnet-20241022",
+  "prompt_version": "v1",
+  "test_cases": 35,
+  "overall_accuracy": 0.0,
+  "field_accuracy": {
+    "vendor": 0.0,
+    "invoice_id": 0.0,
+    "date": 0.0,
+    "amount": 0.0,
+    "currency": 0.0,
+    "due_date": 0.0,
+    "line_items": 0.0
+  },
+  "cross_field_consistency": 0.0,
+  "avg_latency_ms": 0.0,
+  "avg_cost_per_invoice_usd": 0.0,
+  "total_cost_usd": 0.0,
+  "category_accuracy": {},
+  "errors": 0
+}

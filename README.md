@@ -333,3 +333,6 @@ Full documentation in [.env.example](.env.example). Key variables:
 ```
 
 ---
+
+Built by Anesah Fraser  
+https://www.prozeolis.co.uk
