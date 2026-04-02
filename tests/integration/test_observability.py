@@ -12,6 +12,8 @@ Covers:
 
 from __future__ import annotations
 
+from unittest.mock import patch
+
 from fastapi.testclient import TestClient
 
 # ── Correlation ID ────────────────────────────────────────────────────────────
@@ -43,13 +45,18 @@ def test_health_returns_healthy(test_client: TestClient):
 
 
 def test_health_ready_reports_database_status(test_client: TestClient):
-    """GET /api/v1/health/ready includes a 'database' key in checks."""
-    response = test_client.get("/api/v1/health/ready")
+    """GET /api/v1/health/ready includes a 'database' key in checks.
+
+    Patches settings.database_url to None so the test is deterministic
+    regardless of whether a local .env file has DATABASE_URL set.
+    """
+    with patch("app.api.routes.health.settings") as mock_settings:
+        mock_settings.database_url = None
+        response = test_client.get("/api/v1/health/ready")
     assert response.status_code == 200
     body = response.json()
     assert "checks" in body
     assert "database" in body["checks"]
-    # Without DATABASE_URL configured in tests, database is 'not configured'
     assert body["checks"]["database"] == "not configured"
 
 

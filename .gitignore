@@ -26,6 +26,9 @@ logs/
 .idea/
 *.swp
 
+# Non-production AI assistant config
+CLAUDE.md
+
 # Docker
 docker-compose.override.yml
 venv
