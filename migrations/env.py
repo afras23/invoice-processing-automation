@@ -15,6 +15,7 @@ To generate a new migration after model changes:
 from __future__ import annotations
 
 import asyncio
+import os
 from logging.config import fileConfig
 
 from alembic import context
@@ -41,21 +42,23 @@ target_metadata = Base.metadata
 
 
 def _get_database_url() -> str:
-    """Read the database URL from settings, falling back to alembic.ini."""
-    try:
-        from app.config import settings  # noqa: PLC0415
+    """
+    Resolve the database URL in the following order:
 
-        if settings.database_url:
-            return settings.database_url
-    except Exception:
-        pass
-    url = config.get_main_option("sqlalchemy.url")
-    if not url:
-        raise RuntimeError(
-            "DATABASE_URL not set in environment or alembic.ini. "
-            "Export DATABASE_URL before running alembic."
-        )
-    return url
+    1. DATABASE_URL from the process environment
+    2. sqlalchemy.url from alembic.ini
+    3. A CI-safe fallback for test runs
+    """
+    env_url = os.getenv("DATABASE_URL")
+    if env_url:
+        return env_url
+
+    ini_url = context.config.get_main_option("sqlalchemy.url")
+    if ini_url:
+        return ini_url
+
+    # Final CI-safe fallback used when neither environment nor ini provides a URL.
+    return "postgresql+asyncpg://test:test@localhost:5432/test_invoices"
 
 
 # ── Offline migrations (generate SQL without a live DB) ──────────────────────
